@@ -40,7 +40,8 @@ Application Load Balancer (ALB)
 ```
 
 > 📸 **Architecture Screenshot:**
-> ![Architecture](./screenshots/architecture.png)
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/5f8d3e4f-253b-4ea6-b719-876fcc959eb3" />
+
 
 ---
 
@@ -66,7 +67,7 @@ Application Load Balancer (ALB)
 | RSA Key Pair | Auto-generated 4096-bit SSH key (`two-tier-key.pem`) |
 
 > 📸 **AWS Console Screenshot:**
-> ![AWS Console](./screenshots/aws-console.png)
+<img width="1642" height="690" alt="image" src="https://github.com/user-attachments/assets/6dee03ad-3955-46ca-9767-6f74ca1a403b" />
 
 ---
 
@@ -180,7 +181,8 @@ ssh_command       = "ssh -i two-tier-key.pem ubuntu@xx.xx.xx.xx"
 ```
 
 > 📸 **Deployment Screenshot:**
-> ![Deployment Output](./screenshots/deployment-output.png)
+<img width="952" height="120" alt="image" src="https://github.com/user-attachments/assets/1c3e1468-fefd-45ab-b69d-b0b59b346e24" />
+
 
 ---
 
@@ -201,7 +203,8 @@ Hello from Terraform Web Server on Ubuntu
 This confirms the EC2 instance was successfully provisioned, Nginx was installed via the user data script, and the ALB is correctly routing traffic to the web tier.
 
 > 📸 **App Screenshot:**
-> ![Live App](./screenshots/app-live.png)
+<img width="1913" height="1017" alt="image" src="https://github.com/user-attachments/assets/876fb8e5-dd5a-4b95-b4dc-948917ee0afa" />
+
 
 ---
 
@@ -237,7 +240,8 @@ mysql -h <rds-endpoint> -u admin -p
 **Result:** Connection times out and is dropped. The RDS instance has `publicly_accessible = false` and the DB security group only permits traffic from the web security group — all other sources are denied.
 
 > 📸 **RDS Security Validation Screenshot:**
-> ![RDS Validation](./screenshots/rds-validation.png)
+<img width="1918" height="807" alt="image" src="https://github.com/user-attachments/assets/9d4d19ca-68e9-45ff-929c-ca5e7fb7ce1d" />
+
 >
 > *Left: MySQL connection from EC2 ✅ — Right: Connection from local machine ❌ (timeout)*
 
