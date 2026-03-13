@@ -68,7 +68,8 @@ Application Load Balancer (ALB)
 | Secrets Manager | Encrypted RDS credentials (`two-tier/rds/credentials`) |
 
 > 📸 **AWS Console Screenshot:**
-<img width="1642" height="690" alt="image" src="https://github.com/user-attachments/assets/6dee03ad-3955-46ca-9767-6f74ca1a403b" />
+<img width="1678" height="666" alt="image" src="https://github.com/user-attachments/assets/d30ff93c-577c-4310-972a-82b67126b10c" />
+
 
 ---
 
@@ -138,8 +139,8 @@ The ALB spans two public subnets across `eu-west-2a` and `eu-west-2b`, and the R
 RDS credentials are stored encrypted in **AWS Secrets Manager** instead of plain-text variables. A new `secrets.tf` file creates the secret, seeds it with credentials on first apply, and exposes it as a data source. The `database.tf` file then reads the credentials directly from Secrets Manager — they never appear in terminal commands, CI/CD logs, or `.tf` files. Both `db_username` and `db_password` variables are marked `sensitive = true`, so they are redacted as `(sensitive value)` in all Terraform plan and apply output.
 
 > 📸 **Secrets Manager Console Screenshot:**
-<!-- TO ADD: Go to AWS Console → Secrets Manager → two-tier/rds/credentials → take a screenshot showing the secret exists → upload to GitHub and replace this line with the img tag -->
-> ⚠️ *Replace this line with your Secrets Manager screenshot after applying infrastructure*
+<img width="1752" height="817" alt="image" src="https://github.com/user-attachments/assets/44af4060-4e31-4ff9-8c36-4506c45dc60c" />
+
 
 ---
 
