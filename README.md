@@ -13,7 +13,7 @@ The infrastructure includes:
 - RDS MySQL database (private, not publicly accessible)
 - Security groups with least-privilege access
 - Auto-generated RSA SSH key pair
-- **AWS Secrets Manager for encrypted RDS credential management**
+- AWS Secrets Manager for encrypted RDS credential management
 
 This project highlights cloud networking, multi-tier architecture design, infrastructure security, and DevOps deployment practices.
 
