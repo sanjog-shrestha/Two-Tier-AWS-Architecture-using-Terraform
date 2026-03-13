@@ -15,8 +15,8 @@ resource "aws_db_instance" "database" {
   instance_class    = "db.t3.micro"
 
   # Credentials - pass via -var or TF_VAR_* (never commit)
-  username = var.db_username
-  password = var.db_password
+  username = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["username"]
+  password = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["password"]
 
   # Network - RDS must be in a DB subnet group (private subnets)
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name

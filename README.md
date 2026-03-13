@@ -13,6 +13,7 @@ The infrastructure includes:
 - RDS MySQL database (private, not publicly accessible)
 - Security groups with least-privilege access
 - Auto-generated RSA SSH key pair
+- **AWS Secrets Manager for encrypted RDS credential management**
 
 This project highlights cloud networking, multi-tier architecture design, infrastructure security, and DevOps deployment practices.
 
@@ -42,7 +43,6 @@ Application Load Balancer (ALB)
 > 📸 **Architecture Screenshot:**
 <img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/5f8d3e4f-253b-4ea6-b719-876fcc959eb3" />
 
-
 ---
 
 ## ☁️ AWS Deployment
@@ -65,6 +65,7 @@ Application Load Balancer (ALB)
 | RDS MySQL 8.0 | Private database instance (`db.t3.micro`, 20GB) |
 | DB Subnet Group | Multi-AZ subnet group for RDS |
 | RSA Key Pair | Auto-generated 4096-bit SSH key (`two-tier-key.pem`) |
+| Secrets Manager | Encrypted RDS credentials (`two-tier/rds/credentials`) |
 
 > 📸 **AWS Console Screenshot:**
 <img width="1642" height="690" alt="image" src="https://github.com/user-attachments/assets/6dee03ad-3955-46ca-9767-6f74ca1a403b" />
@@ -83,6 +84,7 @@ terraform-aws-two-tier/
 ├── compute.tf         # EC2 instance with Nginx user data
 ├── loadbalancer.tf    # ALB, target group, listener, IGW
 ├── database.tf        # RDS MySQL instance and subnet group
+├── secrets.tf         # AWS Secrets Manager secret and data source
 ├── outputs.tf         # ALB DNS name and SSH command output
 └── two-tier-key.pem   # Auto-generated SSH key (do NOT commit)
 ```
@@ -99,6 +101,7 @@ terraform-aws-two-tier/
 | `compute.tf` | Launches EC2 with Ubuntu 22.04 + Nginx via user data script |
 | `loadbalancer.tf` | Provisions IGW, route table, ALB, target group, and listener |
 | `database.tf` | Creates private RDS MySQL 8.0 instance with subnet group |
+| `secrets.tf` | Creates Secrets Manager secret, seeds credentials, exposes data source |
 | `outputs.tf` | Outputs the ALB DNS URL and ready-to-use SSH command |
 
 ---
@@ -130,6 +133,14 @@ Each layer only accepts traffic from the layer directly above it:
 
 The ALB spans two public subnets across `eu-west-2a` and `eu-west-2b`, and the RDS subnet group also covers both AZs — laying the groundwork for multi-AZ failover.
 
+### 5️⃣ Secrets Manager for RDS Credentials
+
+RDS credentials are stored encrypted in **AWS Secrets Manager** instead of plain-text variables. A new `secrets.tf` file creates the secret, seeds it with credentials on first apply, and exposes it as a data source. The `database.tf` file then reads the credentials directly from Secrets Manager — they never appear in terminal commands, CI/CD logs, or `.tf` files. Both `db_username` and `db_password` variables are marked `sensitive = true`, so they are redacted as `(sensitive value)` in all Terraform plan and apply output.
+
+> 📸 **Secrets Manager Console Screenshot:**
+<!-- TO ADD: Go to AWS Console → Secrets Manager → two-tier/rds/credentials → take a screenshot showing the secret exists → upload to GitHub and replace this line with the img tag -->
+> ⚠️ *Replace this line with your Secrets Manager screenshot after applying infrastructure*
+
 ---
 
 ## 🚀 Deployment Instructions
@@ -137,7 +148,7 @@ The ALB spans two public subnets across `eu-west-2a` and `eu-west-2b`, and the R
 ### Prerequisites
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.0
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) configured with valid credentials
-- AWS account with EC2, RDS, VPC, and ELB permissions
+- AWS account with EC2, RDS, VPC, ELB, and **Secrets Manager** permissions
 
 ### Steps
 
@@ -162,12 +173,18 @@ terraform validate
 terraform plan -var="db_username=admin" -var="db_password=yourpassword"
 ```
 
+> 🔒 Credentials will show as `(sensitive value)` in the plan output — this confirms redaction is working correctly.
+
 **5. Apply Infrastructure**
 ```bash
 terraform apply -var="db_username=admin" -var="db_password=yourpassword"
 ```
 
 > ⚠️ RDS provisioning takes approximately **5–10 minutes**.
+
+> 📸 **Sensitive Value Redaction Screenshot:**
+<!-- TO ADD: Run terraform plan and take a screenshot showing (sensitive value) in the output → upload to GitHub and replace the line below -->
+> ⚠️ *Replace this line with your terraform plan screenshot showing `(sensitive value)` redaction*
 
 ---
 
@@ -182,7 +199,6 @@ ssh_command       = "ssh -i two-tier-key.pem ubuntu@xx.xx.xx.xx"
 
 > 📸 **Deployment Screenshot:**
 <img width="952" height="120" alt="image" src="https://github.com/user-attachments/assets/1c3e1468-fefd-45ab-b69d-b0b59b346e24" />
-
 
 ---
 
@@ -200,11 +216,8 @@ The Nginx web server responds with:
 Hello from Terraform Web Server on Ubuntu
 ```
 
-This confirms the EC2 instance was successfully provisioned, Nginx was installed via the user data script, and the ALB is correctly routing traffic to the web tier.
-
 > 📸 **App Screenshot:**
 <img width="1913" height="1017" alt="image" src="https://github.com/user-attachments/assets/876fb8e5-dd5a-4b95-b4dc-948917ee0afa" />
-
 
 ---
 
@@ -216,8 +229,6 @@ This was validated with two connection tests:
 
 ### ✅ Connection from EC2 — Allowed
 
-SSH into the EC2 instance and attempt a MySQL connection to the RDS endpoint:
-
 ```bash
 # Step 1: SSH into EC2 using the Terraform output command
 ssh -i two-tier-key.pem ubuntu@<public-ip>
@@ -226,23 +237,20 @@ ssh -i two-tier-key.pem ubuntu@<public-ip>
 mysql -h <rds-endpoint> -u admin -p
 ```
 
-**Result:** Connection succeeds — `Welcome to the MySQL monitor` is returned. The EC2 security group is whitelisted in the DB security group on port 3306.
+**Result:** Connection succeeds — `Welcome to the MySQL monitor` is returned.
 
 ### ❌ Connection from Local Machine — Denied
-
-Attempt the same MySQL connection directly from a local machine (outside the VPC):
 
 ```bash
 # Run from your laptop — NOT from EC2
 mysql -h <rds-endpoint> -u admin -p
 ```
 
-**Result:** Connection times out and is dropped. The RDS instance has `publicly_accessible = false` and the DB security group only permits traffic from the web security group — all other sources are denied.
+**Result:** Connection times out and is dropped. The RDS instance has `publicly_accessible = false` and the DB security group only permits traffic from the web security group.
 
 > 📸 **RDS Security Validation Screenshot:**
 <img width="1918" height="807" alt="image" src="https://github.com/user-attachments/assets/9d4d19ca-68e9-45ff-929c-ca5e7fb7ce1d" />
 
->
 > *Left: MySQL connection from EC2 ✅ — Right: Connection from local machine ❌ (timeout)*
 
 ---
@@ -250,6 +258,8 @@ mysql -h <rds-endpoint> -u admin -p
 ## 🔐 Security Notes
 
 - `two-tier-key.pem` is auto-generated locally. **Never commit it to version control.**
+- RDS credentials are stored encrypted in AWS Secrets Manager — never in `.tf` files or shell history.
+- Both `db_username` and `db_password` are marked `sensitive = true` — they appear as `(sensitive value)` in all Terraform output.
 - Add the following to your `.gitignore`:
 ```
 two-tier-key.pem
@@ -257,11 +267,6 @@ two-tier-key.pem
 terraform.tfstate
 terraform.tfstate.backup
 *.tfvars
-```
-- **Do not hard-code** `db_username` and `db_password` — use environment variables:
-```bash
-export TF_VAR_db_username=admin
-export TF_VAR_db_password=yourpassword
 ```
 - Port `22` (SSH) is open to `0.0.0.0/0`. **For production, restrict this to your IP.**
 
@@ -275,6 +280,7 @@ export TF_VAR_db_password=yourpassword
 | Load Balancing | AWS Application Load Balancer (ALB) |
 | Web Tier | Amazon EC2 (Ubuntu 22.04 + Nginx) |
 | Database Tier | Amazon RDS (MySQL 8.0) |
+| Credential Management | AWS Secrets Manager |
 | Security | AWS Security Groups |
 | Key Management | Terraform TLS Provider |
 | Infrastructure Provisioning | Terraform |
@@ -292,6 +298,9 @@ export TF_VAR_db_password=yourpassword
 - EC2 user data for automated Nginx installation
 - Terraform resource dependency management
 - Auto-generated SSH key pairs using the TLS provider
+- AWS Secrets Manager integration for encrypted credential handling
+- `sensitive = true` variable flag for Terraform output redaction
+- `jsonencode` / `jsondecode` for structured secret storage and retrieval
 - Infrastructure as Code best practices
 
 ---
@@ -307,6 +316,7 @@ This project demonstrates the ability to:
 - Validate private subnet security through connection testing
 - Structure Terraform configurations across multiple logical files
 - Apply cloud security best practices at the network level
+- Manage secrets securely using AWS Secrets Manager via Terraform
 
 ---
 
@@ -317,7 +327,7 @@ Potential enhancements:
 - [ ] Auto Scaling Group to replace single EC2 instance
 - [ ] Multi-AZ RDS for database high availability
 - [ ] HTTPS with AWS Certificate Manager + Route 53
-- [ ] Secrets Manager for RDS credentials instead of variables
+- [x] ~~Secrets Manager for RDS credentials instead of variables~~ ✅ Completed
 - [ ] NAT Gateway for private subnet outbound access
 - [ ] CloudWatch alarms for EC2 and RDS monitoring
 - [ ] Terraform remote state with S3 + DynamoDB locking

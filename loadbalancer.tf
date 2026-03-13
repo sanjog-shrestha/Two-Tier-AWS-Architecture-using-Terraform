@@ -48,7 +48,7 @@ resource "aws_route_table_association" "public_2" {
 # Purpose: Single entry point (DNS name); health checks; spreads across AZs
 resource "aws_lb" "app_lb" {
   name               = "two-tier-lb"
-  internal           = false  # Public-facing; use true for internal-only
+  internal           = false # Public-facing; use true for internal-only
   load_balancer_type = "application"
 
   security_groups = [aws_security_group.alb_sg.id]

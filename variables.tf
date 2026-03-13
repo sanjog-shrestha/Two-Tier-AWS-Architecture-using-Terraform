@@ -15,7 +15,13 @@ variable "instance_type" {
 }
 
 # RDS master username - used to connect to MySQL database (required at apply)
-variable "db_username" {}
+variable "db_username" {
+  description = "RDS master username - stored in Secrets Manager after first apply"
+  sensitive   = true
+}
 
 # RDS master password - stored in state; use -var or TF_VAR_db_password (required)
-variable "db_password" {}
+variable "db_password" {
+  description = "RDS master password - stored in Secrets Manager after first apply"
+  sensitive   = true
+}

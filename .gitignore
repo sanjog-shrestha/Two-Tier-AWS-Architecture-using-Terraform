@@ -3,3 +3,4 @@
 terraform.tfstate
 terraform.tfstate.backup
 two-tier-key.pem 
+terraform.tfvars

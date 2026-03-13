@@ -30,7 +30,7 @@ resource "aws_subnet" "public_1" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
   # Spread across AZs for high availability
-  availability_zone       = "eu-west-2a"
+  availability_zone = "eu-west-2a"
   # EC2 instances get a public IP automatically (needed for internet access)
   map_public_ip_on_launch = true
 
