@@ -44,7 +44,8 @@ Application Load Balancer (ALB)
 ```
 
 > 📸 **Architecture Screenshot:**
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/5f8d3e4f-253b-4ea6-b719-876fcc959eb3" />
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/b0258e25-f213-465c-94af-4abbeaa5a2d7" />
+
 
 ---
 
