@@ -1,17 +1,28 @@
 # -----------------------------------------------------------------------------
 # Outputs - Exposed values after terraform apply
 # -----------------------------------------------------------------------------
-# Outputs are displayed after apply and can be queried with terraform output.
-# Use these to get the ALB URL and SSH command.
 
-# Load Balancer DNS - The public URL to access the application
-# Purpose: Use this in a browser (http://<dns_name>) to reach the web server
+# Unchanged — ALB DNS name remains the correct application entry point.
 output "load_balancer_dns" {
-  value = aws_lb.app_lb.dns_name
+  description = "Public URL to access the web application via the ALB"
+  value       = aws_lb.app_lb.dns_name
 }
 
-# SSH Command - Pre-built command to connect to the web server
-# Purpose: Copy-paste to SSH into EC2 (ensure two-tier-key.pem has chmod 400)
-output "ssh_command" {
-  value = "ssh -i two-tier-key.pem ubuntu@${aws_instance.web.public_ip}"
+
+# ASG name — useful for CLI queries and CI/CD pipeline references.
+output "asg_name" {
+  description = "Name of the Auto Scaling Group managing the web tier"
+  value       = aws_autoscaling_group.web_asg.name
+}
+
+# Capacity summary — quick confirmation of scaling boundaries after apply.
+output "asg_capacity" {
+  description = "Min / desired / max capacity of the Auto Scaling Group"
+  value       = "min=${var.asg_min_size}  desired=${var.asg_desired_capacity}  max=${var.asg_max_size}"
+}
+
+# Launch template ID — useful for verifying which version is active.
+output "launch_template_id" {
+  description = "ID of the Launch Template used by the ASG"
+  value       = aws_launch_template.web_lt.id
 }

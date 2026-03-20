@@ -25,3 +25,18 @@ variable "db_password" {
   description = "RDS master password - stored in Secrets Manager after first apply"
   sensitive   = true
 }
+
+variable "asg_min_size" {
+  description = "Minimum number of instances in the Auto Scaling Group"
+  default     = 1
+}
+
+variable "asg_max_size" {
+  description = "Maximum number of instances in the Auto Scaling Group"
+  default     = 3
+}
+
+variable "asg_desired_capacity" {
+  description = "Desired number of instances in the Auto Scaling Group"
+  default     = 2
+}
