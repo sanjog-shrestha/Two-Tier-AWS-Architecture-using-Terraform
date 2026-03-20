@@ -160,6 +160,9 @@ The single EC2 instance is replaced by an `aws_launch_template` and `aws_autosca
 
 `health_check_type = "ELB"` is used rather than the default `"EC2"` mode — an instance must return HTTP 200 on the target group health check path before the ASG considers it healthy, ensuring failed application instances are replaced and not just running ones.
 
+<img width="1911" height="247" alt="image" src="https://github.com/user-attachments/assets/6c9f74fb-c39e-431a-896b-ad26401b3402" />
+
+
 ### 7️⃣ Secrets Manager — Destroy/Re-Apply Fix
 
 AWS Secrets Manager schedules deleted secrets for a 7-day recovery window by default. Re-applying after a `terraform destroy` fails because the secret name is still reserved. This is resolved by setting `recovery_window_in_days = 0` in `secrets.tf`, which allows Terraform to delete and recreate the secret immediately without naming conflicts.
